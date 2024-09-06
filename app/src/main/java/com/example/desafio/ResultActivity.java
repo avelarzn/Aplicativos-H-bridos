@@ -1,5 +1,6 @@
 package com.example.desafio;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,10 +10,17 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 
 import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 public class ResultActivity extends Activity {
     private DecimalFormat decimalFormat = new DecimalFormat("#,##0.00");
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy"); // Assuming your date is in this format
 
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,7 +52,7 @@ public class ResultActivity extends Activity {
         double earnings = principal * rate * days / 365;
         double brutoInvest = principal + earnings;
         double ir = earnings * 0.15;
-        double monthlyEarnings = earnings / (days / 30);
+        double monthlyEarnings = (rate / 12) * 100;
         double annualProfitability = rate * 100;
         double periodProfitability = (earnings / principal) * 100;
 
@@ -55,15 +63,34 @@ public class ResultActivity extends Activity {
         percentageTextView.setText(percentageStr + "%");
         brutoInvestTextView.setText("R$ " + decimalFormat.format(brutoInvest));
         irTextView.setText("R$ " + decimalFormat.format(ir));
-        rescueDateTextView.setText(date); // You might want to update this with the correct rescue date calculation
+        rescueDateTextView.setText(date);
         elapsedDaysTextView.setText(String.valueOf(days));
-        monthlyEarningsTextView.setText("R$ " + decimalFormat.format(monthlyEarnings));
+        monthlyEarningsTextView.setText(decimalFormat.format(monthlyEarnings) + "%");
+
+        long elapsedDays = calculateElapsedDays(date);
+        elapsedDaysTextView.setText(String.valueOf(elapsedDays));
+
+        monthlyEarningsTextView.setText(decimalFormat.format(monthlyEarnings) + "%" );
         annualProfitabilityTextView.setText(decimalFormat.format(annualProfitability) + "%");
         periodProfitabilityTextView.setText(decimalFormat.format(periodProfitability) + "%");
+
 
         button.setOnClickListener(v -> {
             Intent mainActivityIntent = new Intent(ResultActivity.this, MainActivity.class);
             startActivity(mainActivityIntent);
         });
+    }
+
+    private long calculateElapsedDays(String inputDate) {
+        try {
+            Date date = dateFormat.parse(inputDate);
+            Date currentDate = Calendar.getInstance().getTime();
+
+            long diffInMillis = currentDate.getTime() - date.getTime();
+            return Math.abs(TimeUnit.DAYS.convert(diffInMillis, TimeUnit.MILLISECONDS));
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return 0;
+        }
     }
 }
